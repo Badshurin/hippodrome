@@ -9,6 +9,7 @@ import org.mockito.Mockito;
 import java.lang.reflect.Field;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mockStatic;
 
 class HorseTest {
 
@@ -67,6 +68,7 @@ class HorseTest {
             assertEquals("Distance cannot be negative.", e.getMessage());
         }
     }
+
     @Test
     void getName() throws NoSuchFieldException, IllegalAccessException {
         Field name = Horse.class.getDeclaredField("name");
@@ -95,10 +97,22 @@ class HorseTest {
     @Disabled
     @Test
     void move() {
-        try (MockedStatic<Horse> mockedStatic = Mockito.mockStatic(Horse.class)) {
-            new Horse("Pegas", 11,23).move();
+        try (MockedStatic<Horse> mockedStatic = mockStatic(Horse.class)) {
+            new Horse("Pegas", 11, 23).move();
             mockedStatic.verify(() -> Horse.getRandomDouble(0.2, 0.9));
         }
+    }
 
+    @ParameterizedTest
+    @ValueSource(doubles = {0.0, 1.0, 2.0, 3.0, 4.0, 100.0})
+    void move(double random) {
+        try (MockedStatic<Horse> mockedStatic = mockStatic(Horse.class)) {
+            Horse horse = new Horse("Pegas", 7, 16);
+            mockedStatic.when(() -> Horse.getRandomDouble((0.2), 0.9)).thenReturn(random);
+
+            horse.move();
+
+            assertEquals(7*random + 16, horse.getDistance());
+        }
     }
 }
